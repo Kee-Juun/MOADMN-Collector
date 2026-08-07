@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Optional
 
 from PyQt6.QtCore import Qt, QDate, QUrl, QTimer, QPoint, QRect, QEvent, QPropertyAnimation, QEasingCurve, pyqtProperty
-from PyQt6.QtGui import QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QKeySequence, QMovie, QPainter, QLinearGradient, QPen, QRadialGradient, QShortcut
+from PyQt6.QtGui import QColor, QDesktopServices, QFont, QFontDatabase, QIcon, QMovie, QPainter, QLinearGradient, QPen, QRadialGradient
 from PyQt6.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -535,9 +535,6 @@ class MOADMNGUI(QMainWindow):
         self.headless_checkbox.setChecked(bool(self.config.get("headless", True)))
         self.headless_checkbox.stateChanged.connect(self._on_headless_changed)
         headless_row_layout.addWidget(self.headless_checkbox, 1)
-        self.headless_row.hide()
-        self._headless_toggle_shortcut = QShortcut(QKeySequence("Ctrl+H"), self)
-        self._headless_toggle_shortcut.activated.connect(self._toggle_headless_visibility)
 
         btn_row = QHBoxLayout()
         btn_row.setContentsMargins(0, 0, 0, 0)
@@ -1597,10 +1594,6 @@ class MOADMNGUI(QMainWindow):
             "The setting will still work for the current run. If you want it saved permanently, "
             "close anything using config.json and try again.",
         )
-
-    def _toggle_headless_visibility(self) -> None:
-        self.headless_row.setVisible(not self.headless_row.isVisible())
-        self._stabilize_window_geometry()
 
     def _show_message_box(self, icon: QMessageBox.Icon, title: str, message: str) -> int:
         box = QMessageBox(self)

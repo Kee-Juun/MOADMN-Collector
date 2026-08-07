@@ -31,10 +31,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.common.exceptions import TimeoutException, StaleElementReferenceException
-
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
+from selenium.common.exceptions import TimeoutException, StaleElementReferenceException, SessionNotCreatedException
 from selenium.webdriver.chrome.options import Options
 
 from config.config import ConfigManager
@@ -271,6 +268,18 @@ class MOADMNScraper(QThread):
             pass
 
     def _describe_exception(self, exc: Exception, include_url: bool = True) -> str:
+        if isinstance(exc, SessionNotCreatedException):
+            browser_match = re.search(r"Current browser version is\s+([0-9.]+)", str(exc), re.IGNORECASE)
+            driver_match = re.search(r"only supports Chrome version\s+([0-9]+)", str(exc), re.IGNORECASE)
+            if browser_match and driver_match:
+                browser_version = browser_match.group(1)
+                driver_version = driver_match.group(1)
+                return (
+                    "Chrome/ChromeDriver version mismatch. "
+                    f"Chrome on this PC is v{browser_version}, but the available ChromeDriver only supports v{driver_version}. "
+                    "Please close Chrome, clear any old chromedriver cache if needed, and rerun so Selenium can use a matching driver."
+                )
+
         exc_type = type(exc).__name__
         candidates: List[str] = []
 
@@ -946,8 +955,8 @@ class MOADMNScraper(QThread):
         }
         opts.add_experimental_option("prefs", prefs)
 
-        service = Service(ChromeDriverManager().install())
-        driver = webdriver.Chrome(service=service, options=opts)
+        self._log("Launching Chrome via Selenium Manager.")
+        driver = webdriver.Chrome(options=opts)
         driver.set_window_size(1400, 900)
         return driver
 
